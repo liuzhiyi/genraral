@@ -1,15 +1,89 @@
 #include "../includes/array.h"
 
 static int g_array_find_position(g_array_t *a, va_list args) {
-    int   x, pos, d;
+    int   x, pos, d, len;
 
     pos = 0;
     x = 0;
-    for (d = 0; d <= a->d; d++) {
+    len = a->nelts;
+    for (d = 0; d < a->d; d++) {
         x = va_arg(args, int);
-        pos += x * (a->nelts/a->bounds[d]);
+        len = len/a->bounds[d]
+        pos += x * len;
     }
-    return pos-1;
+    x = va_arg(args, int);
+    pos += x;
+    return pos;
+}
+
+static void *g_array_init_inside(void *elts, uint_t size, compare_t cmp, uint_t d, va_list args) {
+    g_array_t    *a;
+    int           i, n;
+
+    a = g_malloc(sizeof(g_array_t));
+    a->elts = elts;
+    a->d = d;
+    a->size = size;
+    a->nelts = 0;
+    a->cmp = cmp;
+    a->sentinel = g_malloc(size)
+    a->bounds = g_malloc(sizeof(uint_t)*d);
+    n = 1;
+    for (i = 0; i < d; i++) {
+        a->bounds[i] = va_arg(args, int);
+        n *= a->bounds[i];
+    }
+    if (n <= 0) {
+        g_log_error("the number of elements is must greater than 0");
+        return NULL;
+    }
+    a->nalloc = n;
+    return a;
+}
+
+g_array_t *g_array_create(uint_t size, compare_t cmp, uint_t d, ...) {
+    void       *elts;
+    va_list    args;
+    int        n, i, b;
+    g_array_t  *a;
+
+    va_start(d, args);
+    n = 1;
+    for (i = 0; i < d; i++) {
+        b = va_arg(args, int);
+        n *= b;
+    }
+    if (n <= 0) {
+        g_log_error("the number of elements is must greater than 0");
+        return NULL;
+    }
+    elts = g_calloc(size *n);
+    if (elts == NULL) {
+        g_log_error("out of memory");
+        return NULL:
+    }
+    a = g_array_init_inside(elts, size, cmp, d, va_list args);
+    va_end(args);
+
+    return a;
+}
+
+g_array_t *g_array_init(void *elts, uint_t size, compare_t cmp, uint_t d, ...) {
+    g_array_t   *a;
+    va_list     args;
+
+    va_start(d, args);
+    a = g_array_init_inside(elts, size, cmp, d, args);
+    va_end(args);
+
+    return a;
+}
+
+void g_array_destory(g_array_t *a) {
+    g_free(a->sentinel);
+    g_free(a->bounds);
+    g_free(a->elts);
+    g_free(a);
 }
 
 int g_array_get_pos(g_array_t *a, ...) {
@@ -216,6 +290,10 @@ int g_array_index_single(g_array_t *a, void *elt) {
         }
     }
     return -1;
+}
+
+void g_array_copy(g_array_t *src, g_array_t *dst) {
+
 }
 
 void g_array_reverse(g_array_t *a) {

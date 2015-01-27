@@ -10,7 +10,7 @@ typedef struct g_array_s {
     unsigned int   d;
     unsigned int   *bounds;
     unsigned int   size;
-    unsigned int   nelse;
+    unsigned int   nelts;
     unsigned int   nalloc;
     compare_t      cmp;
 } g_array_t;

@@ -8,7 +8,7 @@ static int g_array_find_position(g_array_t *a, va_list args) {
     len = a->nelts;
     for (d = 0; d < a->d; d++) {
         x = va_arg(args, int);
-        len = len/a->bounds[d]
+        len = len/a->bounds[d];
         pos += x * len;
     }
     x = va_arg(args, int);
@@ -16,17 +16,17 @@ static int g_array_find_position(g_array_t *a, va_list args) {
     return pos;
 }
 
-static void *g_array_init_inside(void *elts, uint_t size, compare_t cmp, uint_t d, va_list args) {
+static void *g_array_init_inside(void *elts, uint_t size, g_compare_pt cmp, uint_t d, va_list args) {
     g_array_t    *a;
     int           i, n;
 
     a = g_malloc(sizeof(g_array_t));
     a->elts = elts;
-    a->d = d;
+    a->d = d ? d : 1;
     a->size = size;
     a->nelts = 0;
     a->cmp = cmp;
-    a->sentinel = g_malloc(size)
+    a->sentinel = g_malloc(size);
     a->bounds = g_malloc(sizeof(uint_t)*d);
     n = 1;
     for (i = 0; i < d; i++) {
@@ -41,7 +41,7 @@ static void *g_array_init_inside(void *elts, uint_t size, compare_t cmp, uint_t 
     return a;
 }
 
-g_array_t *g_array_create(uint_t size, compare_t cmp, uint_t d, ...) {
+g_array_t *g_array_create(uint_t size, g_compare_pt cmp, uint_t d, ...) {
     void       *elts;
     va_list    args;
     int        n, i, b;
@@ -68,7 +68,7 @@ g_array_t *g_array_create(uint_t size, compare_t cmp, uint_t d, ...) {
     return a;
 }
 
-g_array_t *g_array_init(void *elts, uint_t size, compare_t cmp, uint_t d, ...) {
+g_array_t *g_array_init(void *elts, uint_t size, g_compare_pt cmp, uint_t d, ...) {
     g_array_t   *a;
     va_list     args;
 
@@ -84,6 +84,7 @@ void g_array_destory(g_array_t *a) {
     g_free(a->bounds);
     g_free(a->elts);
     g_free(a);
+    a = NULL;
 }
 
 int g_array_get_pos(g_array_t *a, ...) {
@@ -123,61 +124,10 @@ void g_array_set(g_array_c *a, void *elt, ...) {
     if (pos < 0 || pos > a->nelts-1) {
         g_log_notice("array bounds overflow!");
     }
+    memcpy((char *)a->elts+a->size*pos, elts, a->size);
 }
 
-void g_array_insert(g_array_t *a, void *elt, uint_t pos) {
-    char  *temp;
-
-    if (a->nelts == a->nalloc) {
-        void  *new;
-
-        new = g_realloc(a->elts, a->size*a->nalloc*2);
-        if (new == NULL) {
-            g_log_error("out of memory!");
-            return;
-        }
-        a->elts = new;
-        a->nalloc *= 2;
-    }
-
-    pos = pos > 0 ? (pos <= a->nelts ? pos : a->nelts) : 0;
-    temp = a->elts + a->nelts*a->size;
-    while(temp > (char *)a->elts+pos*a->size) {
-        memcpy(temp+a->size, temp, a->size)
-        temp -= a->size;
-    }
-    memcpy(temp, elt, a->size);
-    a->nelts++;
-}
-
-void *g_array_delete(g_array_t *a, uint_t pos) {
-    char  *temp;
-
-    if (a->nelts == 0) {
-        return NULL;
-    }
-
-    pos = pos > 0 ? (pos < a->nelts ? pos : a->nelts-1) : 0;
-    temp = (char *)a->elts+pos*a->size
-    memcpy(a->sentinel, temp, a->size);
-    while(temp < (char *)a->elts+(a->nelts-1)*a->size) {
-        memcpy(temp, temp+a->size, a->size);
-        temp += a->size;
-    }
-    a->nelts--;
-
-    return a->sentinel;
-}
-
-void g_array_push(g_array_t *a, void *elt) {
-    g_array_insert(a, elt, a->nelts);
-}
-
-void *g_array_pop(g_array_t *a) {
-    return g_array_delete(a, a->nelt-1);
-}
-
-int g_array_compare(g_array_t *a, g_array_t *b) {
+int g_array_compare_s(g_array_t *a, g_array_t *b) {
     int i, j, rel;
 
     i = 0;
@@ -197,7 +147,7 @@ int g_array_compare(g_array_t *a, g_array_t *b) {
     }
 }
 
-int g_array_count(g_array_t *a, g_array_t *sep) {
+int g_array_count_s(g_array_t *a, g_array_t *sep) {
     int   count, len, off, i, j;
     char  *elts;
 
@@ -221,7 +171,7 @@ int g_array_count(g_array_t *a, g_array_t *sep) {
     return count;
 }
 
-int g_array_index(g_array_t *a, g_array_t *sep) {
+int g_array_index_s(g_array_t *a, g_array_t *sep) {
     int   i, len, off, rel;
     char  *single, *elts;
 
@@ -235,7 +185,7 @@ int g_array_index(g_array_t *a, g_array_t *sep) {
 
     single = sep->elts;
     if (sep->nelts == 1) {
-        return g_array_index_single(a, single);
+        return g_array_index_elt_s(a, single);
     }
 
     i = 0;
@@ -244,7 +194,7 @@ int g_array_index(g_array_t *a, g_array_t *sep) {
     elts = a->elts;
     while(i < len-sep->nelts+1) {
         if (a->cmp((char *)a->elts+i*a->size, single) != 0) {
-            off = g_array_index_single(a, single);
+            off = g_array_index_elt_s(a, single);
             if (off < 0) {
                 break;
             }
@@ -265,7 +215,7 @@ int g_array_index(g_array_t *a, g_array_t *sep) {
 
 }
 
-int g_array_index_single(g_array_t *a, void *elt) {
+int g_array_index_elt_s(g_array_t *a, void *elt) {
     int low, high, mid;
 
     if (elt == NULL) {
@@ -292,11 +242,15 @@ int g_array_index_single(g_array_t *a, void *elt) {
     return -1;
 }
 
-void g_array_copy(g_array_t *src, g_array_t *dst) {
+void g_array_copy(g_array_t *src, void *dst) {
+    if (a->nelts == 0) {
+        return;
+    }
 
+    memcpy(dst, (char *)a->elts+(a->nelts-1)*a->size, a->size);
 }
 
-void g_array_reverse(g_array_t *a) {
+void g_array_reverse_s(g_array_t *a) {
     char *s, *e;
 
     s = a->elts;
@@ -310,6 +264,10 @@ void g_array_reverse(g_array_t *a) {
     }
 }
 
-void g_array_join(g_array_t *a, void *sep) {
+void g_array_join(g_array_t *a, void *sep, uint_t n) {
+    if (a.d == 1) {
+        return;
+    }
+
 
 }

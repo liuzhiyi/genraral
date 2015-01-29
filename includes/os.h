@@ -1,6 +1,8 @@
 #ifndef _OS_H_
 #define _OS_H_
 
+#define WIN32
+
 #ifdef WIN32
 #include <windows.h>
 typedef unsigned __int32         uint32_t;

@@ -12,6 +12,8 @@ typedef unsigned int             uint_t;
 
 #endif
 
+#define EOS          '\0'      //end of string
+
 #define g_malloc         malloc
 #define g_free           free
 #define g_alloc          alloc

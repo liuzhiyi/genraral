@@ -45,89 +45,89 @@ void *g_list_delete(g_list_t *l, uint_t pos) {
     return l->sentinel;
 }
 
-int g_list_compare(g_list_t *a, g_list_t *b) {
+int g_list_compare(g_list_t *a, void *b, uint_t n) {
     int i, j, rel;
 
     i = 0;
     j = 0;
-    while(i < a->nelts && j < b->nelts) {
-        if (rel = a->cmp((char *)a->elts+i*l->elt.size, (char *)b->elts+j*b->size) != 0) {
+    while(i < a->nelts && j < n) {
+        if ((rel = a->elt.cmp((char *)a->elt.data+i*a->elt.size, (char *)b+j*a->elt.size)) != 0) {
             return rel;
         }
     }
 
-    if (i == a->nelts) {
+    if (i == l->nelts) {
         return 1;
-    } else if (j == b->nelts) {
+    } else if (j == n) {
         return -1;
     } else {
         return 0;
     }
 }
 
-int g_list_count(g_list_t *a, g_list_t *sep) {
+int g_list_count(g_list_t *a, void *sep, uint_t n) {
     int   count, len, off, i, j;
     char  *elts;
 
     count = 0;
     len = a->nelts;
-    elts = a->elts;
-    j = a->nelts - sep->nelts + 1;
+    elts = a->elt.data;
+    j = a->nelts - n + 1;
     while (i < j) {
-        off = g_list_index(a, sep);
+        off = g_list_index(a, sep, n);
         if (off >= 0) {
             count++;
         } else {
             break;
         }
-        i += off + sep->nelts;
-        a->elts += i * l->elt.size;
+        i += off + n;
+        a->elt.data += i * a->elt.size;
         a->nelts -= i;
     }
-    a->elts = elts;
+    a->elt.data = elts;
     a->nelts = len;
     return count;
 }
 
-int g_list_index(g_list_t *a, g_list_t *sep) {
+int g_list_index(g_list_t *a, void *sep, uint_t n) {
     int   i, len, off, rel;
     char  *single, *elts;
 
-    if (sep->nelts == 0) {
+    if (n == 0) {
         return -1;
     }
 
-    if (sep->nelts > a->nelts) {
+    if (n > a->nelts) {
         return -1;
     }
 
-    single = sep->elts;
-    if (sep->nelts == 1) {
+    single = sep;
+    if (n == 1) {
         return g_list_index_elt(a, single);
     }
 
     i = 0;
     rel = -1;
     len = a->nelts;
-    elts = a->elts;
+    elts = a->elt.data;
     while(i < len-sep->nelts+1) {
-        if (a->cmp((char *)a->elts+i*l->elt.size, single) != 0) {
+        if (a->elt.cmp((char *)a->elt.data+i*a->elt.size, single) != 0) {
             off = g_list_index_elt(a, single);
             if (off < 0) {
                 break;
             }
             i += off;
         }
-        a->elts += i*l->elt.size;
+        a->elt.data += i*a->elt.size;
         a->nelts -= i;
-        if (g_list_comare(a, sep) == 0) {
+        if (g_list_comare(a, sep, n) == 0) {
             rel = i;
             break;
         }
         i++;
     }
 
-    a->elts = elts;
+    a->elt.data = elts;
     a->nelts = len;
     return rel;
 
@@ -172,4 +172,8 @@ void g_list_reverse(g_list_t *l) {
         s += l->elt.size;
         e -= l->elt.size;
     }
+}
+
+void g_list_replace(g_list_t *l) {
+
 }

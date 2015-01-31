@@ -20,7 +20,7 @@ typedef unsigned int             uint_t;
 #define g_callo          calloc
 #define g_realloc        realloc
 #define g_log_error(s)
-#define g_log_notice(s)
+#define g_log_notice(s)  printf(s)
 #define g_debug(s)
 
 #endif

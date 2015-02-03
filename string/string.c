@@ -59,8 +59,24 @@ int g_string_len(u_char *s) {
     return i;
 }
 
-int g_string_cmp(u_char *s1, u_char *s2, uint_t n) {
+int g_string_cmp(u_char *s1, uint_t s1_n, u_char *s2, uint_t s2_n) {
+    int    i;
 
+    for (i = 0; i < s1_n && i < s2_n; i++) {
+        if (s1[i] > s2[i]) {
+            return 1;
+        } else if (s1[i] < s2[i]) {
+            return -1;
+        }
+    }
+
+    if (i < s1_n) {
+        return 1;
+    } else if (i < s2_n) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
 int g_string_index(u_char *s, uint_t n, u_char *sep, uint_t sep_n) {
@@ -82,7 +98,7 @@ int g_string_index(u_char *s, uint_t n, u_char *sep, uint_t sep_n) {
         h = h * PRIME_RK + (uint32_t)s[i];
     }
 
-    if (h == hash && g_string_cmp(s, sep, n) == 0) {
+    if (h == hash && g_string_cmp(s, sep_n, sep, sep_n) == 0) {
         return 0;
     }
 
@@ -90,10 +106,73 @@ int g_string_index(u_char *s, uint_t n, u_char *sep, uint_t sep_n) {
         h = h*PRIME_RK + (uint32_t)s[i];
         h -= pow * (uint32_t)s[i-sep_n];
         i++;
-        if (h == hashsep && g_string_cmp(s, sep, n) == 0) {
+        if (h == hashsep && g_string_cmp(s, sep_n, sep, sep_n) == 0) {
             return i - sep_n
         }
     }
 
     return -1;
+}
+
+int g_string_has_prefix(u_char *s, uint_t n, u_char *prefix, uint_t prefix_n) {
+    return n >= prefix_n && g_string_cmp(s, prefix_n, prefix, prefix_n) == 0;
+}
+
+int g_string_has_suffix(u_char *s, uint_t n, u_char *suffix, uint_t suffix_n) {
+    return n >= suffix_n && g_string_cmp(s+n-suffix_n, suffix_n, suffix, suffix_n);
+}
+
+void g_string_split(u_char *src, uint_t n, u_char *sep, uint_t sep_n, u_char **dst) {
+    int       start, i, na;
+
+    for (i = 0; i+sep_n <= n; i++) {
+        if (c = s[i] && (sep_n == 1 || g_string_cmp(s+i, sep_n, sep, sep_n))) {
+            memcpy((*a)[na], s+start, i-start);
+            i += sep_n - 1;
+            na++;
+            start += i + sep_n;
+        }
+    }
+    memcpy((*a)[na], s+start, n);
+    return a;
+}
+
+void g_string_join(u_char **src, u_char *dst, u_char *sep) {
+    int  i;
+
+    memcpy(dst, (*src)[i], g_string_len((*src)[i]));
+    for (i = 1; i < n; i++) {
+        memcpy(dst, sep, sep_n);
+        memcpy(dst, (*src)[i], g_string_len((*src)[i]));
+    }
+}
+
+void g_string_tolower(u_char *src, u_char *dst, uint_t n) {
+    while(n) {
+        *dst = g_char_tolower(*src);
+        dst++;
+        src++;
+        n--;
+    }
+}
+
+void g_string_toupper(u_char *src, u_char *dst, uint_t n) {
+    while(n) {
+        *dst = g_char_toupper(*src);
+        dst++;
+        src++;
+        n--;
+    }
+}
+
+void g_string_trim() {
+
+}
+
+void g_string_replace() {
+
+}
+
+void g_string_repeate() {
+
 }

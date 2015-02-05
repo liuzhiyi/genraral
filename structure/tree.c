@@ -248,6 +248,11 @@ void g_rbtree_right_rotate(g_rbtree_node_t **root, g_rbtree_node_t *node) {
     node->parent = temp;
 }
 
-void g_radix_insert() {
+/*
+*第一层mask：1000 0000 0000 0000 0000 0000 0000 0000;
+*第二层为：  1100 0000 0000 0000 0000 0000 0000 0000;
+*第三层为：  1110 0000 0000 0000 0000 0000 0000 0000;
+*/
+void g_radix32_insert_node(g_radix_t *root, g_radix_node_t *node) {
 
 }

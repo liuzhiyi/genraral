@@ -9,8 +9,8 @@ typedef struct g_element_s {
 } g_element_t;
 
 #define    g_get_d(var, pt, type)                        if (pt = NULL) { \
-
                                                          }
+
 #define    g_element_init_d(elt, data, size, cmp)        elt.data = data; \
                                                          elt.size = size; \
                                                          elt.cmp  = cmp

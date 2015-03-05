@@ -175,5 +175,5 @@ void g_list_reverse(g_list_t *l) {
 }
 
 void g_list_replace(g_list_t *l) {
-    
+
 }
